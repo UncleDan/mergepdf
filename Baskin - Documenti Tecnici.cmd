@@ -1,9 +1,15 @@
 @echo off
 
+@rem Questo programma può funzionare in due modi:
+@rem 1.	Creando un elenco con lo stesso nome del batch più "_lista.csv" se si desidera un ordine particolare.
+@rem 	Esempio: se il batch si chiama "Baskin - Documenti Tecnici.cmd" la lista si deve chiamare "Baskin - Documenti Tecnici_lista.csv"
+@rem 2.	Se nessuna lista è specificata il programma processerà i file presenti nella cartella %PERCORSOPDF% in ordine alfabetico.
+
 rem --- VARIABILI --- INIZIO ---
 set REVISIONE=4.5
 set TITOLO=%~n0
-set SEJDACOMMAND=C:\Users\Daniele\Documents\Baskin\Baskin-Daniele Lolli\My Baskin Sketchbook\_tools\sejda-console-3.2.76\bin\sejda-console
+set PERCORSOPDF=PDF
+set SEJDACOMMAND=..\_tools\sejda-console-3.2.76\bin\sejda-console
 rem --- VARIABILI --- FINE ---
 
 cls
@@ -24,36 +30,58 @@ set day=%date:~0,2%
 if "%day:~0,1%" == " " set day=0%day:~1,1%
 
 set FILEOUTPUT=%TITOLO% - rev. %REVISIONE% (%year%-%month%-%day% %hour%-%min%-%secs%).pdf
-set FILETEMP=%TITOLO% - rev. %REVISIONE% [FILETEMP].pdf
+set FILETEMP=__TEMP__%FILEOUTPUT%
 set FILELISTA=%TITOLO%_lista.csv
+if exist %FILELISTA% goto AbbiamoLista
+	set FILELISTA=__TEMP__%FILELISTA%
+	if exist "__DA_RIORDINARE%FILELISTA%" del "__DA_RIORDINARE%FILELISTA%"
+	for %%a in ("%PERCORSOPDF%\*.pdf") do echo %%~fa>>"__DA_RIORDINARE%FILELISTA%"
+	if exist "%FILELISTA%" del "%FILELISTA%"
+	sort "__DA_RIORDINARE%FILELISTA%" /o "%FILELISTA%"
+	if exist "__DA_RIORDINARE%FILELISTA%" del "__DA_RIORDINARE%FILELISTA%"
+	if exist "%FILELISTA%" set CANCELLALISTA=*VERO*
+:AbbiamoLista
+set CMDUNISCI=__TEMP__%TITOLO% - rev. %REVISIONE% [UNISCI].cmd
+set CMDNUMERA=__TEMP__%TITOLO% - rev. %REVISIONE% [NUMERA].cmd
 
 echo.
 echo.
 echo Unione documenti...
 echo.
-echo "%SEJDACOMMAND%" merge -l "%FILELISTA%" -o "%FILETEMP%" --overwrite >"%TITOLO% - rev. %REVISIONE% [UNISCI].cmd"
-call "%TITOLO% - rev. %REVISIONE% [UNISCI].cmd"
+echo "%SEJDACOMMAND%" merge -l "%FILELISTA%" -o "%FILETEMP%" --overwrite >"%CMDUNISCI%"
+call "%CMDUNISCI%"
 
 echo.
 echo.
 echo Aggiungo i numeri di pagina...
 echo.
-echo "%SEJDACOMMAND%" setheaderfooter -o "%FILEOUTPUT%" -f "%FILETEMP%" --pageRange all --verticalAlign bottom --horizontalAlign center --label "%TITOLO% - Rev. %REVISIONE% - pag. [PAGE_OF_TOTAL]"  >"%TITOLO% - rev. %REVISIONE% [NUMERA].cmd"
-call "%TITOLO% - rev. %REVISIONE% [NUMERA].cmd"
+echo "%SEJDACOMMAND%" setheaderfooter -o "%FILEOUTPUT%" -f "%FILETEMP%" --pageRange all --verticalAlign bottom --horizontalAlign center --label "%TITOLO% - Rev. %REVISIONE% - pag. [PAGE_OF_TOTAL]" -s 3->"%CMDNUMERA%"
+call "%CMDNUMERA%"
 
 echo.
 echo.
 echo Pulizia...
 echo.
-if exist "%TITOLO% - rev. %REVISIONE% [UNISCI].cmd" del "%TITOLO% - rev. %REVISIONE% [UNISCI].cmd"
-if exist "%TITOLO% - rev. %REVISIONE% [NUMERA].cmd" del "%TITOLO% - rev. %REVISIONE% [NUMERA].cmd"
+if exist "%CMDUNISCI%" del "%CMDUNISCI%"
+if exist "%CMDNUMERA%" del "%CMDNUMERA%"
 if exist "%FILETEMP%" del "%FILETEMP%"
+if "%CANCELLALISTA%"=="*VERO*" del "%FILELISTA%"
 
 set REVISIONE=
 set TITOLO=
+set SEJDACOMMAND=
+set hour=
+set min=
+set secs=
+set year=
+set month=
+set day=
 set FILEOUTPUT=
 set FILETEMP=
 set FILELISTA=
+set CANCELLALISTA=
+set CMDUNISCI=
+set CMDNUMERA=
 
 echo FINITO.
 echo.
