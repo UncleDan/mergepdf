@@ -9,6 +9,7 @@ rem --- VARIABILI --- INIZIO ---
 set REVISIONE=4.5
 set TITOLO=%~n0
 set PERCORSOPDF=PDF
+set PAGINEDANUMERARE=3-126,130-198
 set SEJDACOMMAND=..\_tools\sejda-console-3.2.76\bin\sejda-console
 rem --- VARIABILI --- FINE ---
 
@@ -55,7 +56,7 @@ echo.
 echo.
 echo Aggiungo i numeri di pagina...
 echo.
-echo "%SEJDACOMMAND%" setheaderfooter -o "%FILEOUTPUT%" -f "%FILETEMP%" --pageRange all --verticalAlign bottom --horizontalAlign center --label "%TITOLO% - Rev. %REVISIONE% - pag. [PAGE_OF_TOTAL]" -s 3->"%CMDNUMERA%"
+echo "%SEJDACOMMAND%" setheaderfooter -o "%FILEOUTPUT%" -f "%FILETEMP%" --pageRange all --verticalAlign bottom --horizontalAlign center --label "%TITOLO% - Rev. %REVISIONE% - [PAGE_OF_TOTAL]" -s %PAGINEDANUMERARE%>"%CMDNUMERA%"
 call "%CMDNUMERA%"
 
 echo.
@@ -69,6 +70,8 @@ if "%CANCELLALISTA%"=="*VERO*" del "%FILELISTA%"
 
 set REVISIONE=
 set TITOLO=
+set PERCORSOPDF=
+set PAGINEDANUMERARE=
 set SEJDACOMMAND=
 set hour=
 set min=
